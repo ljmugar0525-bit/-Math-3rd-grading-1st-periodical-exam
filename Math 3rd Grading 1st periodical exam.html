@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 Kinder Math Adventure! 🌈</title>
+    <style>
+        :root {
+            --math-orange: #ff9f43;
+            --math-purple: #9b59b6;
+            --math-blue: #3498db;
+            --math-green: #2ecc71;
+            --text-navy: #2c3e50;
+        }
+        body { font-family: 'Comic Sans MS', cursive, sans-serif; background: #f0f9ff; margin: 0; padding: 15px; text-align: center; color: var(--text-navy); }
+        .adventure-box { max-width: 850px; margin: 0 auto; background: white; border: 8px solid var(--math-orange); border-radius: 40px; box-shadow: 0 12px 0 #d35400; overflow: hidden; }
+        
+        .header { background: var(--math-orange); color: white; padding: 20px; border-bottom: 5px solid #d35400; }
+        .content { padding: 30px; }
+
+        .btn-go { background: var(--math-green); color: white; border: none; padding: 20px 50px; border-radius: 30px; font-size: 26px; cursor: pointer; box-shadow: 0 8px 0 #27ae60; transition: 0.1s; }
+        .btn-go:active { transform: translateY(4px); box-shadow: 0 4px 0 #27ae60; }
+
+        .choice-btn { width: 100%; margin: 10px 0; padding: 18px; font-size: 26px; border-radius: 20px; border: 4px solid #eee; background: white; cursor: pointer; transition: 0.2s; box-shadow: 0 4px #ddd; }
+        .choice-btn:hover { border-color: var(--math-purple); background: #f5f0f9; transform: scale(1.02); }
+
+        .map-track { background: #e0e0e0; height: 25px; border-radius: 15px; margin: 20px 0; position: relative; }
+        .player { position: absolute; left: 0%; transition: 0.5s; font-size: 28px; top: -10px; }
+
+        /* Report Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-family: sans-serif; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; }
+        .pass { color: var(--math-green); font-weight: bold; }
+        .fail { color: #e74c3c; font-weight: bold; }
+
+        .hidden { display: none; }
+        input { padding: 15px; font-size: 20px; border-radius: 15px; border: 3px solid #ddd; width: 85%; text-align: center; margin-bottom: 20px; }
+        
+        @media print {
+            .btn-go, #quiz-div, #start-div { display: none !important; }
+            .adventure-box { border: none; box-shadow: none; width: 100%; max-width: 100%; }
+            #result-div { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="adventure-box">
+    <div class="header">
+        <h1 style="margin:0;">🔢 MATH ADVENTURE 🔢</h1>
+        <p style="margin:5px 0 0; font-weight: bold;">One More, One Less & Placing!</p>
+    </div>
+
+    <div class="content">
+        <div id="start-div">
+            <h2 style="font-size: 28px;">Hello Little Mathematician!</h2>
+            <p>What is your name?</p>
+            <input type="text" id="playerName" placeholder="Your Name">
+            <br>
+            <button class="btn-go" onclick="startMath()">LET'S PLAY! ⭐️</button>
+        </div>
+
+        <div id="quiz-div" class="hidden">
+            <div class="map-track">
+                <div id="player" class="player">🏃‍♂️</div>
+            </div>
+            <h2 id="mathQText" style="font-size: 28px; min-height: 90px; color: var(--math-purple);"></h2>
+            <div id="mathOptions"></div>
+        </div>
+
+        <div id="result-div" class="hidden">
+            <h1 style="color: var(--math-green); font-size: 36px;">FINISH LINE! 🏁</h1>
+            <p style="font-size: 20px;">Great job, <span id="spanName"></span>!</p>
+            <h2 style="background: var(--math-blue); color:white; display: inline-block; padding: 10px 25px; border-radius: 15px;">
+                Score: <span id="mathScore"></span> / 25
+            </h2>
+
+            <div style="margin-top: 30px; text-align: left;">
+                <p><strong>Detailed Performance Record:</strong></p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Question</th>
+                            <th>Student Answer</th>
+                            <th>Result</th>
+                            <th>Correct Key</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mathTableBody"></tbody>
+                </table>
+            </div>
+            <br>
+            <button class="btn-go" style="background: var(--math-blue); box-shadow: 0 8px 0 #2980b9;" onclick="window.print()">🖨️ PRINT REPORT</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const mathQs = [
+        { q: "🍎 I have 1 apple. If I get 1 MORE, how many do I have?", o: ["1", "2"], c: 1 },
+        { q: "🚗 3 cars are parked. 1 MORE comes. Now there are...", o: ["4", "2"], c: 0 },
+        { q: "🖐️ What is 1 MORE than 5?", o: ["4", "6"], c: 1 },
+        { q: "🎈 9 balloons and 1 MORE makes...", o: ["10", "8"], c: 0 },
+        { q: "🍦 I have 2 scoops. I want 1 MORE. That is...", o: ["1", "3"], c: 1 },
+        { q: "🐸 7 frogs are on a log. 1 MORE jumps on. Now there are...", o: ["8", "6"], c: 0 },
+        { q: "⭐ What is 1 MORE than 4?", o: ["3", "5"], c: 1 },
+        { q: "🐝 6 bees and 1 MORE bee makes...", o: ["7", "5"], c: 0 },
+        { q: "🍪 I had 2 cookies. I ate 1. Now I have 1 LESS. That is...", o: ["1", "3"], c: 0 },
+        { q: "🎒 5 bags are on the table. Take 1 AWAY. How many are left?", o: ["6", "4"], c: 1 },
+        { q: "🐥 10 birds were in a tree. 1 flew away. Now there are...", o: ["9", "11"], c: 0 },
+        { q: "🍭 What is 1 LESS than 3?", o: ["4", "2"], c: 1 },
+        { q: "🏀 8 balls are in the box. 1 rolls away. Now there are...", o: ["7", "9"], c: 0 },
+        { q: "🦁 6 lions were sleeping. 1 woke up and left. Now there are...", o: ["5", "7"], c: 0 },
+        { q: "🎂 4 candles were lit. I blew 1 out. Now there are...", o: ["5", "3"], c: 1 },
+        { q: "🚲 What is 1 LESS than 1?", o: ["0", "2"], c: 0 },
+        { q: "🥇 The person who wins the race is...", o: ["1st", "2nd"], c: 0 },
+        { q: "🥈 The person who comes after 1st is...", o: ["3rd", "2nd"], c: 1 },
+        { q: "🥉 What comes after 2nd?", o: ["3rd", "1st"], c: 0 },
+        { q: "🍦 In a line: 1st, 2nd, ____, 4th. What is missing?", o: ["3rd", "5th"], c: 0 },
+        { q: "🚂 Which car is the very beginning of the train?", o: ["1st", "Last"], c: 0 },
+        { q: "🍎 1st is Apple, 2nd is Banana. Which one is 1st?", o: ["Banana", "Apple"], c: 1 },
+        { q: "🏁 If you are 5th in line, are you at the very front?", o: ["Yes", "No"], c: 1 },
+        { q: "🔢 What is the short way to write 'Third'?", o: ["3rd", "2nd"], c: 0 },
+        { q: "🦒 1st, 2nd, 3rd, 4th, ____. What is next?", o: ["5th", "6th"], c: 0 }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let mathLogs = [];
+
+    function startMath() {
+        const name = document.getElementById('playerName').value;
+        if(!name) return alert("Please tell me your name! 😊");
+        document.getElementById('start-div').classList.add('hidden');
+        document.getElementById('quiz-div').classList.remove('hidden');
+        showMathQ();
+    }
+
+    function showMathQ() {
+        const data = mathQs[current];
+        document.getElementById('mathQText').innerText = data.q;
+        document.getElementById('player').style.left = (current / 25 * 92) + "%";
+        
+        let html = "";
+        data.o.forEach((opt, i) => {
+            html += `<button class="choice-btn" onclick="checkMath(${i})">${opt}</button>`;
+        });
+        document.getElementById('mathOptions').innerHTML = html;
+    }
+
+    function checkMath(idx) {
+        const data = mathQs[current];
+        const isCorrect = idx === data.c;
+        if(isCorrect) score++;
+
+        mathLogs.push({ 
+            q: data.q, 
+            studentAns: data.o[idx], 
+            ok: isCorrect, 
+            key: data.o[data.c] 
+        });
+        
+        current++;
+        if(current < 25) showMathQ();
+        else finishMath();
+    }
+
+    function finishMath() {
+        document.getElementById('quiz-div').classList.add('hidden');
+        document.getElementById('result-div').classList.remove('hidden');
+        document.getElementById('spanName').innerText = document.getElementById('playerName').value;
+        document.getElementById('mathScore').innerText = score;
+
+        let tableHtml = "";
+        mathLogs.forEach((log, i) => {
+            tableHtml += `<tr>
+                <td>${i+1}</td>
+                <td>${log.q}</td>
+                <td>${log.studentAns}</td>
+                <td class="${log.ok ? 'pass' : 'fail'}">${log.ok ? 'Correct' : 'Wrong'}</td>
+                <td>${log.key}</td>
+            </tr>`;
+        });
+        document.getElementById('mathTableBody').innerHTML = tableHtml;
+    }
+</script>
+</body>
+</html>
